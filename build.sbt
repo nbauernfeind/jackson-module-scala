@@ -15,7 +15,7 @@ scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 //scalacOptions in (Compile, compile) += "-Xfatal-warnings"
 
 // Ensure jvm 1.6 for java
-lazy val java6Home = new File(System.getenv("JAVA6_HOME"))
+lazy val java6Home = new File(Option(System.getenv("JAVA6_HOME")).getOrElse(throw new RuntimeException("JAVA6_HOME not set.")))
 
 javacOptions ++= Seq(
   "-source", "1.6",
