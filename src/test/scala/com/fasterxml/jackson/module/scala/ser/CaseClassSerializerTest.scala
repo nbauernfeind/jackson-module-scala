@@ -1,6 +1,8 @@
 package com.fasterxml.jackson.module.scala.ser
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility
 import com.fasterxml.jackson.annotation.JsonProperty.Access
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -15,6 +17,10 @@ case class ConstructorTestCaseClass(intValue: Int, stringValue: String)
 case class ValTestCaseClass() {
   val intVal: Int = 1
   val strVal: String = "foo"
+}
+
+case class LazyValTestCaseClass(first: String, last: String) {
+  lazy val full: String = s"$first $last"
 }
 
 case class VarTestCaseClass() {
@@ -81,6 +87,21 @@ class CaseClassSerializerTest extends SerializerTest {
       equal ("""{"intVal":1,"strVal":"foo"}""") or
       equal ("""{"strVal":"foo","intVal":1}""")
     )
+  }
+
+  it should "serialize a class class with lazy val members" in {
+    serialize(LazyValTestCaseClass("John", "Smith")) should
+      equal ("""{"first":"John","last":"Smith","full":"John Smith"}""")
+  }
+
+
+  it should "serialize a class class with lazy val members and field visibility only" in {
+    val objMapper = new ObjectMapper() with ScalaObjectMapper
+    objMapper.registerModule(DefaultScalaModule)
+    objMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE)
+    objMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY)
+    objMapper.writeValueAsString(LazyValTestCaseClass("John", "Smith")) should
+      equal ("""{"first":"John","last":"Smith","full":"John Smith"}""")
   }
 
   it should "serialize a class class with var members" in {

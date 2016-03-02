@@ -26,16 +26,18 @@ javacOptions ++= Seq(
 // Try to future-proof scala jvm targets, in case some future scala version makes 1.7 a default
 scalacOptions += "-target:jvm-1.6"
 
+val jacksonVersion = "2.7.2"
+
 libraryDependencies ++= Seq(
     "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-    "com.fasterxml.jackson.core" % "jackson-core" % "2.7.2",
-    "com.fasterxml.jackson.core" % "jackson-annotations" % "2.7.2",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.7.2",
-    "com.fasterxml.jackson.module" % "jackson-module-paranamer" % "2.7.2",
+    "com.fasterxml.jackson.core" % "jackson-core" % jacksonVersion,
+    "com.fasterxml.jackson.core" % "jackson-annotations" % jacksonVersion,
+    "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
+    "com.fasterxml.jackson.module" % "jackson-module-paranamer" % jacksonVersion,
     // test dependencies
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-joda" % "2.7.2" % "test",
-    "com.fasterxml.jackson.datatype" % "jackson-datatype-guava" % "2.7.2" % "test",
-    "com.fasterxml.jackson.module" % "jackson-module-jsonSchema" % "2.7.2" % "test",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-joda" % jacksonVersion % "test",
+    "com.fasterxml.jackson.datatype" % "jackson-datatype-guava" % jacksonVersion % "test",
+    "com.fasterxml.jackson.module" % "jackson-module-jsonSchema" % jacksonVersion % "test",
     "org.scalatest" %% "scalatest" % "2.2.1" % "test",
     "junit" % "junit" % "4.11" % "test"
 )
