@@ -7,7 +7,7 @@ organization := "com.fasterxml.jackson.module"
 
 scalaVersion := "2.11.8"
 
-crossScalaVersions := Seq("2.10.6", "2.11.8", "2.12.0-M4")
+crossScalaVersions := Seq("2.10.6", "2.11.8")
 
 scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 
@@ -16,7 +16,8 @@ scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 
 // Ensure jvm 1.6 for java
 lazy val java6Home = Option(System.getenv("JAVA6_HOME")).map(new File(_)).getOrElse {
-  sys.error("Please set JAVA6_HOME environment variable")
+//  sys.error("Please set JAVA6_HOME environment variable")
+    new File("/Library/Java/JavaVirtualMachines/1.6.0_65-b14-462.jdk/Contents/Home")
 }
 
 javacOptions ++= Seq(
