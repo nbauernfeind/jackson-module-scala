@@ -7,13 +7,14 @@ import com.fasterxml.jackson.databind.`type`.{ReferenceType, TypeBindings, TypeF
 import com.fasterxml.jackson.module.scala.JacksonModule
 
 private object OptionTypeModifier extends TypeModifier with GenTypeModifier {
-  def BASE = classOf[Option[Any]]
+  def OPTION = classOf[Option[AnyRef]]
 
-  override def modifyType(originalType: JavaType, jdkType: Type, context: TypeBindings, typeFactory: TypeFactory) = {
-    if (classObjectFor(jdkType).exists(BASE.isAssignableFrom) && !originalType.isMapLikeType && originalType.containedTypeCount <= 1) {
-      val valType = originalType.containedTypeOrUnknown(0)
-      ReferenceType.upgradeFrom(originalType, valType)
-    } else originalType
+  override def modifyType(typ: JavaType, jdkType: Type, context: TypeBindings, typeFactory: TypeFactory): JavaType = {
+    if (typ.isReferenceType || typ.isContainerType) return typ
+
+    if (classObjectFor(jdkType).exists(OPTION.isAssignableFrom)) {
+      ReferenceType.upgradeFrom(typ, typ.containedTypeOrUnknown(0))
+    } else typ
   }
 }
 
