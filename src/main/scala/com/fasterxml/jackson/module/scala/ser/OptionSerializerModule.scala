@@ -182,7 +182,8 @@ private object OptionSerializerResolver extends Serializers.Base {
                                        contentValueSerializer: JsonSerializer[AnyRef]): JsonSerializer[_] = {
     if (!OPTION.isAssignableFrom(refType.getRawClass)) return null
     new OptionSerializer(refType.getReferencedType, property = None,
-      Option(contentTypeSerializer), Option(contentValueSerializer),
+      Option(contentTypeSerializer).orElse(Option(refType.getTypeHandler[TypeSerializer])),
+      Option(contentValueSerializer).orElse(Option(refType.getValueHandler[JsonSerializer[AnyRef]])),
       contentInclusion = None, unwrapper = None)
   }
 }
