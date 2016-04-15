@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import com.fasterxml.jackson.databind.ser.{ContextualSerializer, Serializers}
 import com.fasterxml.jackson.databind.util.NameTransformer
 import com.fasterxml.jackson.module.scala.modifiers.OptionTypeModifierModule
+import com.fasterxml.jackson.module.scala.util.Implicits._
 
 private object OptionSerializer {
   def useStatic(provider: SerializerProvider, property: Option[BeanProperty], referredType: JavaType): Boolean = {
@@ -47,6 +48,12 @@ private object OptionSerializer {
   def findSerializer(provider: SerializerProvider, typ: JavaType, prop: Option[BeanProperty]): JsonSerializer[AnyRef] = {
     // Important: ask for TYPED serializer, in case polymorphic handling is needed!
     provider.findTypedValueSerializer(typ, true, prop.orNull)
+  }
+
+  def hasContentTypeAnnotation(provider: SerializerProvider, property: BeanProperty): Boolean = {
+    val intr = provider.getAnnotationIntrospector
+    if (property == null || intr == null) return false
+    intr.refineSerializationType(provider.getConfig, property.getMember, property.getType) != null
   }
 }
 
@@ -79,9 +86,23 @@ private class OptionSerializer(referredType: JavaType,
 
   override def createContextual(prov: SerializerProvider, prop: BeanProperty): JsonSerializer[_] = {
     val propOpt = Option(prop)
-    // Based on the version in GuavaOptionalSerializer
-    val vts = valueTypeSerializer.map(_.forProperty(prop))
-    var ser = valueSerializer.map(prov.handlePrimaryContextualization(_, prop)).asInstanceOf[Option[JsonSerializer[AnyRef]]]
+
+    val vts = valueTypeSerializer.optMap(_.forProperty(prop))
+    var ser = for (
+      prop <- property;
+      member <- Option(prop.getMember);
+      serDef <- Option(prov.getAnnotationIntrospector.findContentSerializer(member))
+    ) yield prov.serializerInstance(member, serDef)
+    ser = ser.orElse(valueSerializer).map(prov.handlePrimaryContextualization(_, prop)).asInstanceOf[Option[JsonSerializer[AnyRef]]]
+    ser = Option(findConvertingContentSerializer(prov, prop, ser.orNull).asInstanceOf[JsonSerializer[AnyRef]])
+    ser = ser match {
+      case None => if (hasContentTypeAnnotation(prov, prop)) {
+        Option(prov.findValueSerializer(referredType, prop))
+      } else None
+        // Why secondary why not primary?
+      case Some(s) => Option(prov.handleSecondaryContextualization(s, prop).asInstanceOf[JsonSerializer[AnyRef]])
+    }
+
     // A few conditions needed to be able to fetch serializer here:
     if (ser.isEmpty && useStatic(prov, propOpt, referredType)) {
       ser = Option(findSerializer(prov, referredType, propOpt))
