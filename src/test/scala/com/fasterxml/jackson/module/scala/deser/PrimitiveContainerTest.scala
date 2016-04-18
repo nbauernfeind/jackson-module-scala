@@ -2,11 +2,14 @@ package com.fasterxml.jackson.module.scala.deser
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize
+import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 object PrimitiveContainerTest
 {
+  case class OptionSeqInt(os: Option[Seq[Int]])
+
   case class OptionInt(value: Option[Int])
   case class AnnotatedOptionInt(@JsonDeserialize(contentAs = classOf[java.lang.Integer]) value: Option[Int])
   case class OptionLong(value: Option[Long])
@@ -57,4 +60,46 @@ class PrimitiveContainerTest extends DeserializationFixture
     value.value("key") shouldBe 1L
   }
 
+  it should "throw if type not convertible in Option" in { f =>
+    val thrown = intercept[InvalidFormatException] {
+      f.readValue[Option[Int]](""""a cat"""")
+    }
+    thrown.getMessage should startWith ("Can not construct instance of")
+  }
+
+  it should "throw if type not convertible in Array" in { f =>
+    val thrown = intercept[InvalidFormatException] {
+      f.readValue[Array[Int]]("""["value"]""")
+    }
+    thrown.getMessage should startWith ("Can not construct instance of")
+  }
+
+  it should "throw if type not convertible in Seq" in { f =>
+    val thrown = intercept[InvalidFormatException] {
+      f.readValue[Seq[Int]]("""["value"]""")
+    }
+    thrown.getMessage should startWith ("Can not construct instance of")
+  }
+
+  it should "throw if type not convertible in Map" in { f =>
+    val thrown = intercept[InvalidFormatException] {
+      f.readValue[Map[String, Int]]("""{"value":"a cat"}""")
+    }
+    thrown.getMessage should startWith ("Can not construct instance of")
+  }
+
+// See #243, cannot be picky until we pick up scala reflection.
+//  it should "throw if type not convertible in OptionInt" in { f =>
+//    val thrown = intercept[InvalidFormatException] {
+//      f.readValue[OptionInt]("""{"value":"a cat"}""")
+//    }
+//    thrown.getMessage should startWith ("Can not construct instance of")
+//  }
+//
+//  it should "throw if type not convertible in SeqInt" in { f =>
+//    val thrown = intercept[InvalidFormatException] {
+//      f.readValue[OptionSeqInt]("""{"os":["a cat"]}""")
+//    }
+//    thrown.getMessage should startWith ("Can not construct instance of")
+//  }
 }
