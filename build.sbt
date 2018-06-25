@@ -5,7 +5,7 @@ name := "jackson-module-scala"
 
 organization := "com.fasterxml.jackson.module"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.13.0-M4"
 
 crossScalaVersions := Seq("2.10.7", "2.11.11", "2.12.6", "2.13.0-M4")
 
@@ -20,6 +20,7 @@ scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature")
 lazy val java7Home =
   Option(System.getenv("JAVA7_HOME"))
     .orElse(Option(System.getProperty("java7.home")))
+    .orElse(Option("/Library/Java/JavaVirtualMachines/jdk1.7.0_80.jdk/Contents/Home"))
     .map(new File(_))
     .getOrElse { sys.error("Please set JAVA7_HOME environment variable or java7.home system property") }
 
